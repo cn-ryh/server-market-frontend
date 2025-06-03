@@ -1,0 +1,59 @@
+import axios from 'axios';
+import { Window } from '@/types'
+
+const api = axios.create({
+    baseURL: '/market/api',
+});
+
+const defaultFailure = (messageText: string) => {
+    window.$message?.warning(`${messageText}`);
+    window.$loadingBar?.error();
+};
+
+const defaultError = (err: any) => {
+    console.error(err);
+    window.$message?.error(`${err.response.data.message}` || '请求失败');
+    window.$loadingBar?.error();
+};
+
+declare const window: Window
+
+
+function post(url: string,data:any, headers?: Record<string, string>) {
+    return new Promise((resolve, reject) => {
+        api.post(url,data, {
+            headers: headers
+        }).then(({ data }) => {
+            if (data.code === 0) {
+                resolve(data);
+                window.$loadingBar?.finish()
+            } else {
+                defaultFailure(data.message);
+                window.$loadingBar?.error()
+            }
+        }).catch(err => { defaultError(err); reject(err); });
+    });
+}
+
+function get(url: string, headers?: Record<string, string>) {
+    return new Promise<any>((resolve, reject) => {
+        api.get(url, {
+            headers: headers
+        }).then(({ data }) => {
+            if (data.code === 0) {
+                resolve(data);
+                window.$loadingBar?.finish()
+            } else {
+                defaultFailure(data.message);
+                window.$loadingBar?.error()
+            }
+        }).catch(err => { defaultError(err); reject(err); });
+
+    });
+}
+
+async function unauthorized() {
+    return (await axios.get(`/user_info`).then((res) => { return res.data.status !== 200; }));
+}
+
+export { api, defaultFailure, defaultError, post, get, unauthorized }
