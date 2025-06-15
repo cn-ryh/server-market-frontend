@@ -13,13 +13,14 @@
           <div class="mobile-menu">
             <NScrollbar style="max-height: 500px">
               <NMenu :options="menuOptions" :value="currentKey" @update:value="handleMenuSelect"
-                     :default-expanded-keys="defaultExpandedKeys" />
+                :default-expanded-keys="defaultExpandedKeys" />
             </NScrollbar>
           </div>
         </NPopover>
         <h2 class="logo" style="background: transparent; 
+        background-clip: text;
         -webkit-background-clip: text; color: transparent; 
-        background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);">{{ packageData.title }}</h2>
+        background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);">{{ packageData.name }}</h2>
       </div>
       <div class="right">
         <NDropdown :options="options" @select="handleUserMenuSelect" trigger="hover">
@@ -51,22 +52,17 @@ import packageData from '../../package.json'
 import { h, ref, inject, computed, Ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { NLayoutHeader, NIcon, NButton, NDropdown, useDialog, useMessage, NSwitch, NPopover, NMenu, MenuOption, NDrawer, NDrawerContent, NScrollbar } from 'naive-ui'
-import { PersonCircleOutline, LogOutOutline, SunnyOutline, MoonOutline, MenuOutline, HomeOutline } from '@vicons/ionicons5'
+import { PersonCircleOutline, SunnyOutline, MoonOutline, MenuOutline, HomeOutline } from '@vicons/ionicons5'
 import { switchButtonRailStyle } from '../constants/theme.ts'
 import { getMenuOptions, renderIcon, defaultExpandedKeys } from '../shared/menuOptions.ts'
 import LeftMenu from './LeftMenu.vue'
-import { userApi } from "@/net";
-import { accessHandle, removeToken } from "@/net/base.ts";
-
-const router = useRouter()
-const route = useRoute()
-const showMenu = ref(false)
-const menuOptions = ref(getMenuOptions())
-const dialog = useDialog()
-const message = useMessage()
-const nickname = localStorage.getItem('nickname')
-const showMobileMenu = ref(false)
-const isMobile = ref(window.innerWidth <= 768)
+const router = useRouter();
+const route = useRoute();
+const showMenu = ref(false);
+const menuOptions = ref(getMenuOptions());
+const nickname = localStorage.getItem('nickname');
+const showMobileMenu = ref(false);
+const isMobile = ref(window.innerWidth <= 768);
 
 // 从 localStorage 获取头像链接
 const avatarUrl = ref(localStorage.getItem('avatar') || '')
@@ -120,11 +116,6 @@ const options = [
     label: '个人资料',
     key: 'profile',
     icon: renderIcon(PersonCircleOutline)
-  },
-  {
-    label: '退出登录',
-    key: 'logout',
-    icon: renderIcon(LogOutOutline)
   }
 ]
 
@@ -133,30 +124,10 @@ const handleThemeChange = () => {
   toggleTheme()
 }
 
-function userLogout() {
-  userApi.get('/user/logout', accessHandle(), () => {
-    removeToken();
-  })
-  router.push({ name: 'login' });
-}
 
 const handleUserMenuSelect = (key: string) => {
   switch (key) {
-    case 'logout':
-      dialog.warning({
-        title: '提示',
-        content: '确定要退出登录吗？',
-        positiveText: '确定',
-        negativeText: '取消',
-        onPositiveClick: () => {
-          userLogout()
-          message.success('已退出登录')
-          router.push('/login').then(() => {
-            window.location.reload()
-          })
-        }
-      })
-      break
+
     case 'profile':
       router.push('/dashboard/user/my-profile')
       break
