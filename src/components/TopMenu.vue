@@ -65,7 +65,7 @@ const showMobileMenu = ref(false);
 const isMobile = ref(window.innerWidth <= 768);
 
 // 从 localStorage 获取头像链接
-const avatarUrl = ref(localStorage.getItem('avatar') || '')
+const avatarUrl = ref("https://www.loliapi.com/acg/pp/")
 
 // 注入主题相关函数
 const { isDarkMode, toggleTheme } = inject('theme') as {

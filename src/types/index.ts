@@ -1,5 +1,5 @@
 export * from './proxy'
-export * from './User'
+export * from './user'
 
 export interface Window extends globalThis.Window {
     $loadingBar?: {
@@ -11,3 +11,5 @@ export interface Window extends globalThis.Window {
     $dialog?: any
     $notification?: any
 }
+
+

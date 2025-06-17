@@ -24,6 +24,8 @@ import {
 } from 'naive-ui'
 import { themeOverrides } from './constants/theme'
 import AppContent from './components/AppContent.vue'
+import axios from 'axios'
+import { useUserStore } from './stores/user'
 
 // 从localStorage读取主题状态，默认跟随系统
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark' || 
@@ -43,9 +45,10 @@ const toggleTheme = () => {
   // 存储主题状态到localStorage
   localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
 }
-
+const userStore = useUserStore();
 // 从本地存储获取恢复主题状态
-onMounted(() => {
+onMounted(async () => {
+  await userStore.login();
   const theme = localStorage.getItem('theme')
   if (theme === 'dark') {
     isDarkMode.value = true

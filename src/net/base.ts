@@ -12,16 +12,15 @@ const defaultFailure = (messageText: string) => {
 
 const defaultError = (err: any) => {
     console.error(err);
-    window.$message?.error(`${err.response.data.message}` || '请求失败');
+    window.$message?.error(err.response.data.message || '请求失败');
     window.$loadingBar?.error();
 };
 
 declare const window: Window
 
-
-function post(url: string,data:any, headers?: Record<string, string>) {
-    return new Promise((resolve, reject) => {
-        api.post(url,data, {
+function post(url: string, data: any, headers?: Record<string, string>) {
+    return new Promise<any>((resolve, reject) => {
+        api.post(url, data, {
             headers: headers
         }).then(({ data }) => {
             if (data.code === 0) {
@@ -35,9 +34,10 @@ function post(url: string,data:any, headers?: Record<string, string>) {
     });
 }
 
-function get(url: string, headers?: Record<string, string>) {
+function get(url: string, params?: Record<string, number | string>, headers?: Record<string, string>) {
     return new Promise<any>((resolve, reject) => {
         api.get(url, {
+            params: params,
             headers: headers
         }).then(({ data }) => {
             if (data.code === 0) {

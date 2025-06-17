@@ -10,17 +10,9 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: () => import('@/views/Dashboard.vue'),
-    },
-    {
-      path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/Dashboard.vue'),
-      redirect: '/dashboard/home',
-      meta: {
-        requiresAuth: true,
-      },
+      redirect: '/product/list',
       children: [
         {
           path: 'home',
@@ -31,24 +23,32 @@ const router = createRouter({
           }
         },
         {
-          path: 'proxy',
-          name: 'tunnel-section',
-          redirect: '/dashboard/proxy/list',
+          path: 'product',
+          name: 'product',
           children: [
             {
-              path: 'create',
-              name: 'create-tunnel',
-              component: () => import('../views/Dashboard/proxies/CreateTunnel.vue'),
+              path: ':id(\\d+)',
+              props: true,
+              name: `product-detail`,
+              component: () => import('../views/Dashboard/products/productDetail.vue'),
               meta: {
-                title: '创建隧道',
+                title: '产品列表',
               }
-            },
+            }, 
             {
               path: 'list',
-              name: 'proxy-list',
-              component: () => import('../views/Dashboard/proxies/ManagerTunnel.vue'),
+              name: `product-list`,
+              component: () => import('../views/Dashboard/products/productList.vue'),
               meta: {
-                title: '隧道列表',
+                title: '产品列表',
+              }
+            },            {
+              path: 'onsale',
+              name: `product-onsale`,
+              component: () => import('../views/Dashboard/products/productOnSale.vue'),
+              meta: {
+                requiresAuth: true,
+                title: '上架产品',
               }
             }
           ]
@@ -62,47 +62,9 @@ const router = createRouter({
           }
         },
         {
-          path: 'downloads',
-          name: 'downloads',
-          component: () => import('../views/Dashboard/downloads.vue'),
-          meta: {
-            title: '下载',
-          }
-        },
-        {
-          path: 'node/status',
-          name: 'node-status',
-          component: () => import('../views/Dashboard/Status.vue'),
-          meta: {
-            title: '节点状态',
-          }
-        },
-        {
-          path: 'cash',
-          name: 'cash',
-          component: () => import('../views/Dashboard/Cash.vue'),
-          meta: {
-            title: '增值服务',
-          }
-        },
-        {
-          path: 'more',
-          name: 'mores',
-          children: [
-            {
-              path: 'about',
-              name: 'about',
-              component: () => import('../views/Dashboard/more/About.vue'),
-              meta: {
-                title: '关于面板',
-              }
-            },
-          ]
-        },
-        {
           path: 'admin',
           name: 'admin',
-          redirect: '/dashboard/admin/users',
+          redirect: '/admin/users',
           children: [
             {
               path: 'users',
@@ -174,7 +136,7 @@ router.beforeEach(async (to, _from, next) => {
   }
   // 其他情况直接放行
   else if (to.matched.length === 0) {
-    next("/dashboard")
+    next("/product/list")
   } else {
     next()
   }

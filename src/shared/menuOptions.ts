@@ -1,18 +1,15 @@
 import { h, Component, ref } from 'vue'
-import { HomeOutline, 
-  AddCircleOutline, 
-  AppsOutline, 
-  DownloadOutline, 
-  IdCardOutline, 
-  StatsChartOutline, 
+import {
+  HomeOutline,
+  AddCircleOutline,
+  AppsOutline,
+  IdCardOutline,
   PeopleOutline,
-  CloudyOutline, 
-  ConstructOutline, 
-  WalletOutline, 
-  BuildOutline, 
-  SettingsOutline, 
-  ListOutline, 
-  CubeOutline
+  CloudyOutline,
+  ConstructOutline,
+  BuildOutline,
+  SettingsOutline,
+  ListOutline,
 } from '@vicons/ionicons5'
 import { NIcon, type MenuOption } from 'naive-ui'
 
@@ -28,51 +25,25 @@ const baseMenuOptions: MenuOption[] = [
     icon: renderIcon(AppsOutline),
     key: 'servers-center',
     children: [
-        {
-          label: '浏览商品',
-          icon: renderIcon(AddCircleOutline),
-          key: 'servers-list',
-          link: '/servers/list',
-        },
-        {
-          label: '上架商品',
-          icon: renderIcon(ListOutline),
-          key: 'servers-online',
-          link: '/servers/online',
-        }
+      {
+        label: '浏览商品',
+        icon: renderIcon(AddCircleOutline),
+        key: 'servers-list',
+        link: '/product/list',
+      },
+      {
+        label: '上架商品',
+        icon: renderIcon(ListOutline),
+        key: 'servers-online',
+        link: '/product/online',
+      }
     ]
   },
   {
-    label: '订单中心',
+    label: '我的订单',
     icon: renderIcon(AppsOutline),
     key: 'order-center',
-    children: [
-        {
-          label: '浏览商品',
-          icon: renderIcon(AddCircleOutline),
-          key: 'create-tunnel',
-          link: '/order/create',
-        },
-        {
-          label: '上架商品',
-          icon: renderIcon(ListOutline),
-          key: 'proxy-list',
-          link: '/order/list',
-        }
-    ]
-  },
-  {
-
-    label: '节点状态',
-    icon: renderIcon(StatsChartOutline),
-    key: 'node-status',
-    link: '/dashboard/node/status',
-  },
-  {
-    label: '文件下载',
-    icon: renderIcon(DownloadOutline),
-    key: 'downloads',
-    link: '/dashboard/downloads',
+    link: '/order/list'
   },
   // {
   //   label: '帮助中心',
@@ -84,26 +55,7 @@ const baseMenuOptions: MenuOption[] = [
     label: '用户中心',
     icon: renderIcon(IdCardOutline),
     key: 'profile',
-    link: '/dashboard/user/my-profile',
-  },
-  {
-    label: '增值服务',
-    key: 'cash',
-    icon: renderIcon(WalletOutline),
-    link: '/dashboard/cash',
-  },
-  {
-    label: '更多',
-    key: 'mores',
-    icon: renderIcon(ListOutline),
-    children: [
-      {
-        label: '关于面板',
-        key: 'about',
-        icon: renderIcon(CubeOutline),
-        link: '/dashboard/more/about',
-      },
-    ]
+    link: '/user/my-profile',
   }
 ]
 
@@ -115,25 +67,25 @@ const adminMenuOptions: MenuOption = {
     {
       label: '用户管理',
       key: 'admin-users',
-      link: '/dashboard/admin/users',
+      link: '/admin/users',
       icon: renderIcon(PeopleOutline)
     },
     {
       label: '节点管理',
       key: 'admin-nodes',
-      link: '/dashboard/admin/nodes',
+      link: '/admin/nodes',
       icon: renderIcon(CloudyOutline)
     },
     {
       label: '隧道管理',
       key: 'admin-proxies',
-      link: '/dashboard/admin/proxies',
+      link: '/admin/proxies',
       icon: renderIcon(AppsOutline)
     },
     {
       label: '产品管理',
       key: 'admin-products',
-      link: '/dashboard/admin/products',
+      link: '/admin/products',
       icon: renderIcon(BuildOutline)
     },
     {
@@ -159,7 +111,7 @@ export function renderIcon(icon: Component) {
   return () => h(NIcon, {
     component: icon,
     size: 22
-  })
+  });
 }
 
-export const defaultExpandedKeys = ref<string[]>(['more'])
+export const defaultExpandedKeys = ref<string[]>(['more']);
