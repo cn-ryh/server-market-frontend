@@ -295,7 +295,7 @@ async function fetchProductInfo(id: number) {
         "流入带宽": 'downloadSpeed'
     }
     const configRes: Record<string, string | number> = {};
-    const { data } = await get(`/product`, {
+    const { data } = await axios.get(`/product`, {
         params: {          
             host_id: id
         }
