@@ -1,11 +1,17 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import { ref, computed, onMounted } from 'vue'
 import {
     NGrid, NGi, NCard, NSpace, NDivider, NTag,
-    NButton, NDescriptions, NDescriptionsItem, NRadioGroup, NRadio
+    NButton, NDescriptions, NDescriptionsItem,
+    useMessage,
+    useModal
 } from 'naive-ui'
 import { get } from '@/net/base'
-
+import { useUserStore } from '@/stores/user';
+const messager = useMessage();
+const showMessage = () => {
+    messager.warning(`逗你的，怎么可能给你看`);
+}
 interface BillingCycle {
     billingcycle: string
     billingcycle_zh: string
@@ -63,58 +69,184 @@ interface ProductData {
     config_array: ConfigItem[]
     product: Product
     configRes: {
-        cpu: string
-        memory: string
-        uploadSpeed: string
-        downloadSpeed: string
-        systemDisk: string
-    }
-}
-
-const props = defineProps<{ id: number }>()
-const productData = ref<ProductData | null>(null)
-const selectedBillingCycle = ref('月付')
-
-onMounted(async () => {
-    // 模拟API请求
-    // 实际开发中应使用:
-    productData.value = (await get(`/product/${props.id}`)).data;
-    console.log(productData.value);
-
-})
-
-// 获取当前价格
-const currentPrice = computed(() => {
-    if (!productData.value) return '0.00'
-
-    return productData.value.databaseInfo.price;
-})
-
-// 格式化日期
-const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString()
-}
-
-// 获取配置项的值
-const getConfigValue = (configId: number) => {
-    if (!productData.value) return ''
-
-    const config = productData.value.config_array.find(item => item.id === configId)
-    if (!config) return ''
-    // 处理不同的sub格式
-    if (Array.isArray(config.sub)) {
-        return config.sub[0].option_name
-    } else if (typeof config.sub === 'object') {
-        const keys = Object.keys(config.sub)
-        if (keys.length > 0) {
-            const child = config.sub[keys[0]].child
-            if (child && child.length > 0) {
-                return child[0].version
-            }
+        area?: {
+            qty: number,
+            spec: string,
+        },
+        cpu?: {
+            qty: number,
+            spec: string,
+        }
+        memory?: {
+            qty: number,
+            spec: string,
+        }
+        uploadSpeed?: {
+            qty: number,
+            spec: string,
+        }
+        downloadSpeed?: {
+            qty: number,
+            spec: string,
+        }
+        systemDisk?: {
+            qty: number,
+            spec: string,
+        },
+        dataDisk?: {
+            qty: number,
+            spec: string,
+        },
+        ipNum?: {
+            qty: number,
+            spec: string,
+        },
+        netNum?: {
+            qty: number,
+            spec: string,
         }
     }
+}
 
-    return ''
+const props = defineProps<{ id: number }>();
+const productData = ref<ProductData | null>(null);
+
+onMounted(async () => {
+    productData.value = (await get(`/product/${props.id}`)).data;
+    console.log(productData.value?.configRes);
+});
+
+const currentPrice = computed(() => {
+    if (!productData.value) return '0.00'
+    return productData.value.databaseInfo.price;
+});
+
+const mapper = {
+    'area': {
+        name: "区域",
+        type: ''
+    },
+    'cpu': {
+        name: "CPU",
+        type: '核'
+    },
+    'memory': {
+        name: "内存",
+        type: 'MB'
+    },
+    'systemDisk': {
+        name: "系统盘",
+        type: 'G'
+    },
+    'networkType': {
+        name: "网络类型",
+        type: ''
+    },
+    'ipNum': {
+        name: "IP数量",
+        type: '个'
+    },
+    'netNum': {
+        name: "NAT转发",
+        type: '个'
+    },
+    'siteNum': {
+        name: "共享建站",
+        type: '个'
+    },
+    'dataDisk': {
+        name: "数据盘",
+        type: 'G'
+    },
+    'uploadSpeed': {
+        name: "带宽",
+        type: 'Mbps'
+    },
+    'downloadSpeed': {
+        name: "流入带宽",
+        type: 'Mbps'
+    }
+}
+const agreements = computed(() =>[
+    { id: 1, title: "物品描述确认", content: "我已确认界面描述的商品符合我的要求，不因商品与需求不符产生纠纷（实际收到商品与描述不符的除外）。" },
+    { id: 2, title: "价格与支付", content: `我同意以当前商品价格人民币 ${currentPrice.value} 元进行交易，交易后不得以存在更低价商品/商品降价为由产生纠纷。` },
+    { id: 3, title: "交付方式", content: "商品自动交付成功视为已收到货物，交易即刻完成。" },
+    { id: 4, title: "免责条款", content: "商品描述部分由委托方填写，与本平台无关，请自行仔细鉴别，如发现被骗可联系平台客服。" },
+    { id: 5, title: "协议生效", content: "本协议经双方勾选确认后立即生效。" }
+]);
+// 存储每条协议的勾选状态
+const checkedItems = ref<boolean[]>(new Array(agreements.value.length).fill(false));
+
+// 计算属性：是否全部勾选
+const allChecked = computed(() => checkedItems.value.every(item => item));
+
+const userStore = useUserStore();
+const modal = useModal();
+function buyObject() {
+    function makeBuy() {
+
+    }
+    if (Number(userStore.$state.balance) <= Number(currentPrice)) {
+        modal.create({
+            title: `余额不足`,
+            content: `余额不足，请先充值，如已充值请刷新界面。`,
+            positiveText: '关闭',
+            onPositiveClick: () => {
+                modal.destroyAll();
+            }
+        });
+    }
+    else {    // 提交处理
+        const handleSubmit = () => {
+            if (allChecked.value) {
+                alert("协议已生效！交易将继续进行");
+            } else {
+                alert("请先同意全部条款");
+            }
+        };
+
+        modal.create({
+            title: `购买`,
+            preset: `card`,
+            style: { width: '75vw' },
+            content: () => (<div class="agreement-container">
+                <p>您正在购买平台用户委托我方代出售的商品 {productData.value?.product.name}</p>
+                <h2 class="title">购买协议确认书</h2>
+
+                {/* 协议条款列表 */}
+                <ul class="agreement-list">
+                    {agreements.value.map((agreement, index) => (
+                        <li class="agreement-item" key={agreement.id}>
+                            <div class="flex-container">
+                                <label class="checkbox-wrapper">
+                                    <input
+                                        type="checkbox"
+                                        checked={checkedItems.value[index]}
+                                        onChange={() => checkedItems.value[index] = !checkedItems.value[index]}
+                                        class="checkbox"
+                                    />
+                                    <span class={`checkmark ${checkedItems.value[index] ? 'checked' : ''}`}></span>
+                                </label>
+                                <div class="content">
+                                    <h3>{agreement.title}</h3>
+                                    <p>{agreement.content}</p>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+
+                {/* 提交按钮 */}
+                <NButton type='primary'
+                    onClick={handleSubmit}
+                    class={`submit-btn ${allChecked.value ? 'active' : 'disabled'}`}
+                    disabled={!allChecked.value}
+                >
+                    确认协议并继续
+                </NButton>
+            </div>),
+        });
+    }
 }
 </script>
 
@@ -133,12 +265,12 @@ const getConfigValue = (configId: number) => {
                     <n-card title="配置参数">
                         <n-grid cols="2 s:3 m:4" x-gap="12" y-gap="12">
                             <n-gi v-for="config in [
-                                { id: 13, name: 'CPU', value: `${productData.configRes.cpu}核` },
-                                { id: 14, name: '内存', value: `${parseInt(productData.configRes.memory) / 1024}G` },
+                                { id: 13, name: 'CPU', value: `${productData.configRes.cpu?.spec}核` },
+                                { id: 14, name: '内存', value: `${parseInt(productData.configRes.memory!.spec) / 1024}G` },
                                 { id: 15, name: '系统盘', value: '40G' },
-                                { id: 17, name: '带宽', value: `${productData.configRes.uploadSpeed??productData.configRes.downloadSpeed}Mbps` },
-                                { id: 18, name: '流入带宽', value: `${productData.configRes.downloadSpeed??productData.configRes.uploadSpeed}Mbps` },
-                                { id: 19, name: 'IP数量', value: getConfigValue(19) }
+                                { id: 17, name: '带宽', value: `${productData.configRes.uploadSpeed?.spec ?? productData.configRes.downloadSpeed?.spec}Mbps` },
+                                { id: 18, name: '流入带宽', value: `${productData.configRes.downloadSpeed?.spec ?? productData.configRes.uploadSpeed?.spec}Mbps` },
+                                { id: 19, name: 'IP数量', value: 0 }
                             ]" :key="config.id">
                                 <n-card size="small" hoverable>
                                     <div class="config-title">{{ config.name }}</div>
@@ -151,26 +283,14 @@ const getConfigValue = (configId: number) => {
                     <!-- 详细信息 -->
                     <n-card title="详细信息">
                         <n-descriptions label-placement="left" bordered size="small" :column="1">
-                            <n-descriptions-item label="区域">
-                                {{ getConfigValue(11) }}
+                            <n-descriptions-item v-for="(value, key) in productData.configRes"
+                                :label="mapper[key].name">
+                                <n-tag type="success" size="large">{{ value!.qty === 0 ? value!.spec : value?.qty
+                                    }} {{ mapper[key].type }}</n-tag>
                             </n-descriptions-item>
-                            <n-descriptions-item label="操作系统">
-                                {{ getConfigValue(12) }}
-                            </n-descriptions-item>
-                            <n-descriptions-item label="网络类型">
-                                {{ getConfigValue(16) }}
-                            </n-descriptions-item>
-                            <n-descriptions-item label="NAT转发">
-                                {{ getConfigValue(20) }}
-                            </n-descriptions-item>
-                            <n-descriptions-item label="创建时间">
-                                {{ formatDate(productData.host_data.regdate) }}
-                            </n-descriptions-item>
-                            <n-descriptions-item label="到期时间">
-                                {{ formatDate(productData.host_data.nextduedate) }}
-                            </n-descriptions-item>
+
                             <n-descriptions-item label="状态">
-                                <n-tag type="success" size="small">已激活</n-tag>
+                                <n-tag type="success" size="large">已激活</n-tag>
                             </n-descriptions-item>
                         </n-descriptions>
                     </n-card>
@@ -185,20 +305,8 @@ const getConfigValue = (configId: number) => {
                             <div class="price-label">当前价格</div>
                             <div class="price-value">¥ {{ currentPrice }}</div>
                         </div>
-
                         <n-divider />
-
-                        <div class="billing-cycle">
-                            <n-radio-group v-model:value="selectedBillingCycle">
-                                <n-space vertical>
-                                    <n-radio v-for="cycle in productData.product.cycle" :key="cycle.billingcycle_zh"
-                                        :value="`${cycle.billingcycle_zh}付`"
-                                        :label="`${cycle.billingcycle_zh}付 ¥${cycle.product_price}`" />
-                                </n-space>
-                            </n-radio-group>
-                        </div>
-
-                        <n-button type="primary" size="large" block class="buy-button">
+                        <n-button type="primary" size="large" @click="buyObject" block class="buy-button">
                             立即购买
                         </n-button>
 
@@ -206,8 +314,8 @@ const getConfigValue = (configId: number) => {
 
                         <div class="account-info">
                             <p><strong>登录信息</strong></p>
-                            <p>用户名: {{ productData.host_data.username }}</p>
-                            <p>密码: {{ productData.host_data.password }}</p>
+                            <p @click="showMessage">用户名: {{ productData.host_data.username }}</p>
+                            <p @click="showMessage">密码: {{ productData.host_data.password }}</p>
                         </div>
                     </n-space>
                 </n-card>
@@ -241,6 +349,7 @@ const getConfigValue = (configId: number) => {
     font-size: 12px;
     color: #999;
 }
+
 
 .config-value {
     font-size: 16px;
@@ -290,5 +399,28 @@ const getConfigValue = (configId: number) => {
     padding: 50px;
     font-size: 18px;
     color: #999;
+}
+</style>
+
+<style>
+/* 新增 Flex 容器 */
+.flex-container {
+    display: flex;
+    /* 启用 Flex 布局 */
+    align-items: flex-start;
+    /* 顶部对齐（可选：center 居中对齐） */
+    gap: 15px;
+    /* 元素间距 */
+}
+
+.flex-container h3 {
+    margin-top: 0px !important;
+}
+
+/* 可选：垂直居中方案（二选一） */
+/* 方案1：顶部对齐（默认） */
+.checkbox-wrapper {
+    margin-top: 4px;
+    /* 微调垂直位置 */
 }
 </style>

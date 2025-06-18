@@ -38,15 +38,12 @@
 
     </div>
     <br>
-    <NAlert class="user-info-item" type="info" show-icon>
-      <NText depth="3" style="font-size: 13px;">签到可以获得 100-500 积分 和 1-5GB 流量 </NText>
-    </NAlert>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NTag, NSkeleton, NText, NAlert } from 'naive-ui'
+import { NTag, NSkeleton } from 'naive-ui'
 import { useUserStore } from '@/stores/user';
 const loading = ref(true);
 const userStore = useUserStore();

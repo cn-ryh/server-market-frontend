@@ -10,7 +10,8 @@
       <n-card :loading="loading" class="user-card">
         <n-space>
           <div class="user-card-avatar">
-            <img style="margin-top: 1px; height: 64px; border-radius: 64px; transform: scale(1.2);" src="https://www.loliapi.com/acg/pp/" alt="用户头像" />
+            <img style="margin-top: 1px; height: 64px; border-radius: 64px; transform: scale(1.2);"
+              src="https://www.loliapi.com/acg/pp/" alt="用户头像" />
           </div>
           <div style="margin-left: 16px; text-align: left; margin-top: 5px;">
             <h3 style="margin: 0px;">{{ forTime }}，{{ nickname }}</h3>
@@ -104,12 +105,12 @@ const renderedNotice = computed(() => {
 const fetchNotice = async (): Promise<void> => {
   notices.value = (await get(`/notice`)).data;
 }
-const isRealname = ref(userStore.value.certifi?.status === 1);
-const goToRealname = ()=>{window.location.href = `/`}
+const isRealname = ref(userStore.$state.certifi?.status === 1);
+const goToRealname = () => { window.location.href = `/` }
 // 页面挂载后执行
 onMounted(() => {
   fetchNotice();
-  
+
 })
 </script>
 

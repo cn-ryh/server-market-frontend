@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import type { UserInfo } from '../types';
 import axios from 'axios';
+import { get } from '@/net/base';
 
 export const useUserStore = defineStore('user', {
   state: (): UserInfo => ({
@@ -10,15 +11,17 @@ export const useUserStore = defineStore('user', {
   }),
   actions: {
     async login() {
-      const res = await axios.get(`/user_info`);
-      if(res.data.status !== 200)
-      {
+      const [res, res2] = await Promise.all([axios.get(`/user_info`), get(`/user/info`)]);
+
+      if (res.data.status !== 200) {
         this.$reset();
       }
-      else
-      {
+      else {
         console.log(res.data.user);
-        this.$state = res.data.user;
+        this.$state = {
+          ...res.data.user,
+          balance: res2.balance
+        };
       }
     }
   },

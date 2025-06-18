@@ -2,11 +2,13 @@
   <NConfigProvider :theme="theme" :theme-overrides="themeOverrides">
     <NDialogProvider>
       <NMessageProvider>
-        <NNotificationProvider>
-          <NLoadingBarProvider>
-            <AppContent />
-          </NLoadingBarProvider>
-        </NNotificationProvider>
+        <NModalProvider>
+          <NNotificationProvider>
+            <NLoadingBarProvider>
+              <AppContent />
+            </NLoadingBarProvider>
+          </NNotificationProvider>
+        </NModalProvider>
       </NMessageProvider>
     </NDialogProvider>
   </NConfigProvider>
@@ -20,15 +22,15 @@ import {
   NDialogProvider,
   NNotificationProvider,
   NLoadingBarProvider,
-  darkTheme
+  darkTheme,
+  NModalProvider
 } from 'naive-ui'
 import { themeOverrides } from './constants/theme'
 import AppContent from './components/AppContent.vue'
-import axios from 'axios'
 import { useUserStore } from './stores/user'
 
 // 从localStorage读取主题状态，默认跟随系统
-const isDarkMode = ref(localStorage.getItem('theme') === 'dark' || 
+const isDarkMode = ref(localStorage.getItem('theme') === 'dark' ||
   window.matchMedia('(prefers-color-scheme: dark)').matches)
 
 const theme = computed(() => isDarkMode.value ? darkTheme : null)
@@ -66,12 +68,18 @@ provide('theme', {
 
 <style lang="scss">
 @use "./assets/styles/transitions.scss";
-input, textarea, select {
+
+input,
+textarea,
+select {
   font-size: 16px !important;
 }
 
 @media screen and (max-width: 768px) {
-  input, textarea, select {
+
+  input,
+  textarea,
+  select {
     font-size: 16px !important;
   }
 }
@@ -81,6 +89,7 @@ input, textarea, select {
 .n-card {
   border-radius: 10px;
 }
+
 body {
   margin: 0;
   padding: 0;

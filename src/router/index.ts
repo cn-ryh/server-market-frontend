@@ -76,24 +76,6 @@ const router = createRouter({
               }
             },
             {
-              path: 'nodes',
-              name: 'admin-nodes',
-              component: () => import('../views/Dashboard/admin/Nodes.vue'),
-              meta: {
-                title: '节点管理',
-                requiresAdmin: true
-              }
-            },
-            {
-              path: 'proxies',
-              name: 'admin-proxies',
-              component: () => import('../views/Dashboard/admin/Proxies.vue'),
-              meta: {
-                title: '隧道管理',
-                requiresAdmin: true
-              }
-            },
-            {
               path: 'system',
               name: 'admin-system',
               component: () => import('../views/Dashboard/admin/System.vue'),
