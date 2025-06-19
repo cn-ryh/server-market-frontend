@@ -6,7 +6,7 @@ import {
     useMessage,
     useModal
 } from 'naive-ui'
-import { get } from '@/net/base'
+import { get, post } from '@/net/base'
 import { useUserStore } from '@/stores/user';
 const messager = useMessage();
 const showMessage = () => {
@@ -167,7 +167,7 @@ const mapper = {
         type: 'Mbps'
     }
 }
-const agreements = computed(() =>[
+const agreements = computed(() => [
     { id: 1, title: "物品描述确认", content: "我已确认界面描述的商品符合我的要求，不因商品与需求不符产生纠纷（实际收到商品与描述不符的除外）。" },
     { id: 2, title: "价格与支付", content: `我同意以当前商品价格人民币 ${currentPrice.value} 元进行交易，交易后不得以存在更低价商品/商品降价为由产生纠纷。` },
     { id: 3, title: "交付方式", content: "商品自动交付成功视为已收到货物，交易即刻完成。" },
@@ -183,8 +183,13 @@ const allChecked = computed(() => checkedItems.value.every(item => item));
 const userStore = useUserStore();
 const modal = useModal();
 function buyObject() {
-    function makeBuy() {
-
+    async function makeBuy() {
+        const { data: orderId } = await post(`/order/create`, {
+            productId: props.id,
+            price: currentPrice.value,
+        });
+        console.log(
+            await post(`/order/pay`, { id: orderId }));
     }
     if (Number(userStore.$state.balance) <= Number(currentPrice)) {
         modal.create({
@@ -197,9 +202,16 @@ function buyObject() {
         });
     }
     else {    // 提交处理
-        const handleSubmit = () => {
+        const handleSubmit = async () => {
             if (allChecked.value) {
-                alert("协议已生效！交易将继续进行");
+                try {
+                    await makeBuy();
+                }
+                catch (e) {
+                    console.error(e);
+                    messager.error('发生错误，购买失败，请联系管理员。');
+                    messager.info('若希望提供帮助，您可按 F12 打开控制台，截图报错发送给管理员');
+                }
             } else {
                 alert("请先同意全部条款");
             }

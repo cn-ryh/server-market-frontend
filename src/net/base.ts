@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 const defaultFailure = (messageText: string) => {
-    window.$message?.warning(`${messageText}`);
+    window.$message?.warning(messageText.startsWith(`@`) ? messageText.slice(1) : `系统错误`);
     window.$loadingBar?.error();
 };
 

@@ -49,6 +49,7 @@ const loading = ref(true);
 const userStore = useUserStore();
 const userInfo = ref(userStore.value);
 onMounted(async () => {
+  console.log(userStore.$state);
   userInfo.value = userStore.$state;
 
   console.log(userInfo.value);
