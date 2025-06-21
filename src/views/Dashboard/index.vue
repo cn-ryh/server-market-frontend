@@ -105,7 +105,7 @@ const renderedNotice = computed(() => {
 const fetchNotice = async (): Promise<void> => {
   notices.value = (await get(`/notice`)).data;
 }
-const isRealname = ref(userStore.$state.certifi?.status === 1);
+const isRealname = ref(userStore.certifi?.status === 1);
 const goToRealname = () => { window.location.href = `/` }
 // 页面挂载后执行
 onMounted(() => {

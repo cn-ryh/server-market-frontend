@@ -57,8 +57,8 @@
                         <n-form ref="formRef" :model="listingForm" :rules="listingRules" label-placement="left"
                             label-width="auto">
                             <n-form-item label="价格" path="price">
-                                <n-input-number v-model:value="listingForm.price" placeholder="请输入价格" :min="0"
-                                    :step="0.01" clearable />
+                                <n-input-number @update:value="handlePriceInput" v-model:value="listingForm.price"
+                                    placeholder="请输入价格" :min="0" :step="0.01" clearable :default-value="0" />
                             </n-form-item>
                             <n-form-item label="描述" path="description">
                                 <n-input v-model:value="listingForm.description" type="textarea" placeholder="请输入商品描述"
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import {
     NLayout,
     NLayoutSider,
@@ -109,6 +109,8 @@ import {
     useMessage
 } from 'naive-ui';
 import axios from 'axios';
+import { post } from '@/net/base';
+import { useRouter } from 'vue-router';
 
 // 商品类型定义
 interface PersonalProduct {
@@ -178,7 +180,7 @@ interface Options {
 
 // 上架表单类型
 interface ListingForm {
-    price: number | null;
+    price: number;
     description: string;
 }
 
@@ -186,19 +188,27 @@ interface ListingForm {
 const personalProducts = ref<PersonalProduct[]>([]);
 const selectedProduct = ref<PersonalProduct | null>(null);
 const listingForm = ref<ListingForm>({
-    price: null,
+    price: 0,
     description: ''
 });
 const isListing = ref(false);
 const formRef = ref<FormInst | null>(null);
 const message = useMessage();
-
 // 表单验证规则
 const listingRules: FormRules = {
     price: [
         {
             required: true,
-            message: '请输入价格',
+            validator(_, value: number | null) {
+                // 自定义验证逻辑
+                if (value === null || value === undefined || value === 0) {
+                    return new Error('请输入价格');
+                }
+                if (value < 0.01) {
+                    return new Error('价格必须大于0');
+                }
+                return true;
+            },
             trigger: ['blur', 'input']
         },
         {
@@ -208,125 +218,60 @@ const listingRules: FormRules = {
             trigger: ['blur', 'input']
         }
     ],
-    description: [
-        {
-            required: true,
-            message: '请输入商品描述',
-            trigger: ['blur', 'input']
-        },
-        {
-            min: 10,
-            message: '描述至少需要10个字符',
-            trigger: ['blur', 'input']
-        }
-    ]
+    description: []
 };
 
 // 获取个人商品列表
 const fetchPersonalProducts = async () => {
     try {
         personalProducts.value = (await axios.get(`/host/list`)).data.data.list;
-        console.log(personalProducts.value);
     } catch (error) {
         message.error('获取商品列表失败');
     }
 };
 
-async function fetchProductInfo(id: number) {
-    interface HostOptionConfig {
-        id: number;
-        relid: number;
-        configid: number;
-        optionid: number;
-        qty: number;
-    }
-
-    interface ConfigSubOption {
-        id: number;
-        config_id: number;
-        option_name: string;
-        option_name_first: string;
-        qty_minimum: number;
-        qty_maximum: number;
-    }
-
-    interface ConfigItem {
-        id: number;
-        pid: number;
-        option_name: string;
-        option_type: number,
-        sub: ConfigSubOption[];
-    }
-
-    interface ApiResponse {
-        host_option_config: HostOptionConfig[];
-        config_array: (ConfigItem)[];
-    }
-
-
-    // 主提取函数
-    function extractConfigs(apiData: ApiResponse): { isUseQty: boolean, name: string, spec: string, qty: number }[] {
-        const { host_option_config, config_array } = apiData;
-
-        return host_option_config.map(hostConfig => {
-            // 根据configid找到对应的配置项
-            const configItem = config_array.find(item => item.id === hostConfig.configid) as ConfigItem | undefined;
-
-            if (!configItem || configItem.option_name == '操作系统') return null;
-            // 在sub数组中查找对应的optionid
-            const subOption = configItem.sub.find(sub => sub.id === hostConfig.optionid) as ConfigSubOption | undefined;
-
-            return subOption ? {
-                isUseQty: (() => {
-                    return [4, 7, 9, 11, 14].includes(configItem.option_type);
-                })(),
-                name: configItem.option_name,
-                spec: subOption.option_name_first,
-                qty: hostConfig.qty
-            } : null;
-        }).filter(Boolean) as { isUseQty: boolean, name: string, spec: string, qty: number }[];
-    }
-    const configMp = {
-        "CPU": 'cpu',
-        "内存": 'memory',
-        "系统盘": 'systemDisk',
-        "数据盘": 'dataDisk',
-        "带宽": 'uploadSpeed',
-        "流入带宽": 'downloadSpeed'
-    }
-    const configRes: Record<string, string | number> = {};
-    const { data } = await axios.get(`/product`, {
-        params: {          
-            host_id: id
-        }
-    });
-    extractConfigs(data).forEach(e => {
-        configRes[configMp[e.name]] = e.isUseQty ? e.qty : e.spec;
-    });
-    return {
-        ...data,
-        configRes
-    }
-}
 // 选择商品
 const selectProduct = async (product: PersonalProduct) => {
-    console.log(await fetchProductInfo(product.id));
     selectedProduct.value = product;
     // 重置表单
     listingForm.value = {
-        price: null,
+        price: 0,
         description: ''
     };
+    // 清除表单验证状态
+    await nextTick();
+    formRef.value?.restoreValidation();
 };
+// 添加输入处理函数
+const handlePriceInput = (value: number | null) => {
+    listingForm.value.price = value ?? 0;
+    formRef.value?.validate(undefined, (rule) => {
+        return rule?.key === 'price';
+    });
+};
+const router = useRouter();
 // 上架商品
 const handleListProduct = async () => {
     if (!selectedProduct.value) return;
     try {
         await formRef.value?.validate();
         isListing.value = true;
+        const res = await post(`/product/onsale`, {
+            id: selectedProduct.value.id,
+            price: listingForm.value.price,
+            description: listingForm.value.description
+        });
+        if (res.code === 0) {
+            message.success('上架成功');
+            setTimeout(() => {
+                router.push(`/product/${selectedProduct.value!.id}`);
+            }, 2000);
+        }
     } catch (errors) {
-        isListing.value = false;
         console.error('表单验证失败', errors);
+    }
+    finally {
+        isListing.value = false;
     }
 };
 

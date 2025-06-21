@@ -50,18 +50,13 @@ interface ProductData {
         title: string;
         price: string;
         status: "available" | "unavailable" | "maintenance"; // 联合类型增强安全性
-
         cpu: string;
         memory: string;
-
-        systemDisk: string; // 可优化为对象类型 { linux: number; windows: number }
-
+        systemDisk: string;
         dataDisk: string;
         uploadSpeed: string;
         downloadSpeed: string;
-
         description: string;
-
         created_at: string; // 实际使用可转为Date类型
     },
     billing_cycle: BillingCycle[]
@@ -188,10 +183,23 @@ function buyObject() {
             productId: props.id,
             price: currentPrice.value,
         });
-        console.log(
-            await post(`/order/pay`, { id: orderId }));
+        const { message } = await post(`/order/pay`, { id: orderId });
+        if (message === "支付成功") {
+            messager.success(`支付成功，商品已转移至您的账户`);
+            setTimeout(() => {
+                window.location.href = `/servicedetail?id=${props.id}`
+            }, 2000);
+        }
+        else {
+            messager.error(`出现问题，支付失败，订单号：${orderId}`, {
+                duration: 600000
+            });
+            messager.error(`如确认出现余额扣除未收到机器，请联系管理员`, {
+                duration: 600000
+            });
+        }
     }
-    if (Number(userStore.$state.balance) <= Number(currentPrice)) {
+    if (Number(userStore.balance) <= Number(currentPrice)) {
         modal.create({
             title: `余额不足`,
             content: `余额不足，请先充值，如已充值请刷新界面。`,
@@ -298,7 +306,7 @@ function buyObject() {
                             <n-descriptions-item v-for="(value, key) in productData.configRes"
                                 :label="mapper[key].name">
                                 <n-tag type="success" size="large">{{ value!.qty === 0 ? value!.spec : value?.qty
-                                    }} {{ mapper[key].type }}</n-tag>
+                                }} {{ mapper[key].type }}</n-tag>
                             </n-descriptions-item>
 
                             <n-descriptions-item label="状态">

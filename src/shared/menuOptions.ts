@@ -35,7 +35,7 @@ const baseMenuOptions: MenuOption[] = [
         label: '上架商品',
         icon: renderIcon(ListOutline),
         key: 'servers-online',
-        link: '/product/online',
+        link: '/product/onsale',
       }
     ]
   },

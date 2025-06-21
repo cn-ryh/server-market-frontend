@@ -20,6 +20,7 @@ const router = createRouter({
           component: () => import('../views/Dashboard/index.vue'),
           meta: {
             title: '首页',
+            requiresAuth: true
           }
         },
         {
@@ -34,7 +35,7 @@ const router = createRouter({
               meta: {
                 title: '产品列表',
               }
-            }, 
+            },
             {
               path: 'list',
               name: `product-list`,
@@ -42,7 +43,7 @@ const router = createRouter({
               meta: {
                 title: '产品列表',
               }
-            },            {
+            }, {
               path: 'onsale',
               name: `product-onsale`,
               component: () => import('../views/Dashboard/products/productOnSale.vue'),
@@ -101,13 +102,11 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
+  console.log(to);
   // 需要登录的路由校验
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (await unauthorized()) {
-      next({
-        name: 'login',
-        query: { redirect: to.fullPath } // 携带跳转路径参数
-      })
+      window.location.href= '/login';
     } else {
       next()
     }

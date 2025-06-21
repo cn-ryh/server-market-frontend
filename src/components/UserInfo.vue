@@ -17,8 +17,8 @@
         <div class="user-info-item-right">
           <div class="user-info-label">实名认证</div>
           <div class="user-info-value">
-            <NTag :type="userInfo.certifi?.status === 1 ? 'success' : 'default'" size="small">
-              {{ userInfo.certifi?.status === 1 ? '已实名' : '未实名' }}
+            <NTag :type="userInfo.realname?.status === 1 ? 'success' : 'default'" size="small">
+              {{ userInfo.realname?.status === 1 ? '已实名' : '未实名' }}
             </NTag>
           </div>
         </div>
@@ -47,12 +47,15 @@ import { NTag, NSkeleton } from 'naive-ui'
 import { useUserStore } from '@/stores/user';
 const loading = ref(true);
 const userStore = useUserStore();
-const userInfo = ref(userStore.value);
+console.log(userStore.username);
+const userInfo = ref({
+  email: userStore.email,
+  username: userStore.username,
+  realname: userStore.certifi,
+  create_time: userStore.create_time,
+  status: userStore.status,
+});
 onMounted(async () => {
-  console.log(userStore.$state);
-  userInfo.value = userStore.$state;
-
-  console.log(userInfo.value);
   loading.value = false;
 })
 defineExpose({

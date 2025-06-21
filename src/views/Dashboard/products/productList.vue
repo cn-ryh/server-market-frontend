@@ -95,7 +95,6 @@ const fetchProducts = async (page: number) => {
         const response: any[] = (await post(`/product/list`, {
             page, pageSize
         })).data.products ?? {};
-        console.log(response);
         if (page === 1) {
             products.value = response as any[];
         } else {

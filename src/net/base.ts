@@ -6,11 +6,18 @@ const api = axios.create({
 });
 
 const defaultFailure = (messageText: string) => {
+    if (messageText === "Unauthorized") {
+        messageText = "@请先登录";
+    }
     window.$message?.warning(messageText.startsWith(`@`) ? messageText.slice(1) : `系统错误`);
     window.$loadingBar?.error();
 };
 
 const defaultError = (err: any) => {
+    if (err.response.data.message === "Unauthorized") {
+        return;
+    }
+
     console.error(err);
     window.$message?.error(err.response.data.message || '请求失败');
     window.$loadingBar?.error();
@@ -53,6 +60,7 @@ function get(url: string, params?: Record<string, number | string>, headers?: Re
 }
 
 async function unauthorized() {
+    console.log(1);
     return (await axios.get(`/user_info`).then((res) => { return res.data.status !== 200; }));
 }
 
