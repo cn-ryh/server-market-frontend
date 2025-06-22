@@ -8,99 +8,10 @@ import {
 } from 'naive-ui'
 import { get, post } from '@/net/base'
 import { useUserStore } from '@/stores/user';
+import { ProductData } from '@/types/product';
 const messager = useMessage();
 const showMessage = () => {
     messager.warning(`逗你的，怎么可能给你看`);
-}
-interface BillingCycle {
-    billingcycle: string
-    billingcycle_zh: string
-}
-
-interface ConfigItem {
-    id: number
-    option_name: string
-    sub: any
-}
-
-interface Product {
-    name: string
-    description: string
-    cycle: Array<{
-        billingcycle_zh: string
-        product_price: string
-    }>
-}
-
-interface HostData {
-    regdate: number
-    nextduedate: number
-    domain: string
-    os: string
-    username: string
-    password: string
-    dedicatedip: string
-    domainstatus: string
-}
-
-interface ProductData {
-    databaseInfo: {
-        readonly id: number;
-        user_id: number;
-        title: string;
-        price: string;
-        status: "available" | "unavailable" | "maintenance"; // 联合类型增强安全性
-        cpu: string;
-        memory: string;
-        systemDisk: string;
-        dataDisk: string;
-        uploadSpeed: string;
-        downloadSpeed: string;
-        description: string;
-        created_at: string; // 实际使用可转为Date类型
-    },
-    billing_cycle: BillingCycle[]
-    host_data: HostData
-    config_array: ConfigItem[]
-    product: Product
-    configRes: {
-        area?: {
-            qty: number,
-            spec: string,
-        },
-        cpu?: {
-            qty: number,
-            spec: string,
-        }
-        memory?: {
-            qty: number,
-            spec: string,
-        }
-        uploadSpeed?: {
-            qty: number,
-            spec: string,
-        }
-        downloadSpeed?: {
-            qty: number,
-            spec: string,
-        }
-        systemDisk?: {
-            qty: number,
-            spec: string,
-        },
-        dataDisk?: {
-            qty: number,
-            spec: string,
-        },
-        ipNum?: {
-            qty: number,
-            spec: string,
-        },
-        netNum?: {
-            qty: number,
-            spec: string,
-        }
-    }
 }
 
 const props = defineProps<{ id: number }>();
@@ -108,7 +19,6 @@ const productData = ref<ProductData | null>(null);
 
 onMounted(async () => {
     productData.value = (await get(`/product/${props.id}`)).data;
-    console.log(productData.value?.configRes);
 });
 
 const currentPrice = computed(() => {
@@ -178,11 +88,16 @@ const allChecked = computed(() => checkedItems.value.every(item => item));
 const userStore = useUserStore();
 const modal = useModal();
 function buyObject() {
+    if (userStore.id <= 0) {
+        window.location.href = `/login`;
+        return;
+    }
     async function makeBuy() {
         const { data: orderId } = await post(`/order/create`, {
             productId: props.id,
             price: currentPrice.value,
         });
+
         const { message } = await post(`/order/pay`, { id: orderId });
         if (message === "支付成功") {
             messager.success(`支付成功，商品已转移至您的账户`);
@@ -198,6 +113,10 @@ function buyObject() {
                 duration: 600000
             });
         }
+    }
+    if (userStore.id === productData.value?.databaseInfo.user_id) {
+        messager.error(`您不能购买自己的商品`);
+        return;
     }
     if (Number(userStore.balance) <= Number(currentPrice)) {
         modal.create({
@@ -326,16 +245,18 @@ function buyObject() {
                             <div class="price-value">¥ {{ currentPrice }}</div>
                         </div>
                         <n-divider />
-                        <n-button type="primary" size="large" @click="buyObject" block class="buy-button">
-                            立即购买
+                        <n-button :disabled="(userStore.id === productData.databaseInfo.user_id)" type="primary"
+                            size="large" @click="buyObject" block class="buy-button">
+                            {{ (userStore.id === 0) ? `请先登录` : ((userStore.id ===
+                                productData.databaseInfo.user_id) ? "不能购买自己的商品" : "立即购买") }}
                         </n-button>
 
                         <n-divider />
 
-                        <div class="account-info">
+                        <div @click="showMessage" class="account-info">
                             <p><strong>登录信息</strong></p>
-                            <p @click="showMessage">用户名: {{ productData.host_data.username }}</p>
-                            <p @click="showMessage">密码: {{ productData.host_data.password }}</p>
+                            <p>用户名: {{ productData.host_data.username }}</p>
+                            <p>密码: {{ productData.host_data.password }}</p>
                         </div>
                     </n-space>
                 </n-card>
@@ -408,8 +329,6 @@ function buyObject() {
 
 .account-info {
     font-size: 13px;
-    color: #666;
-    background-color: #f9f9f9;
     padding: 10px;
     border-radius: 4px;
 }

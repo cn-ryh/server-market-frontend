@@ -53,7 +53,7 @@
             <div style="height:5px"></div>
             <span class="product_info_value">{{ product.downloadSpeed == '-' ? product.uploadSpeed :
               product.downloadSpeed
-            }}</span>
+              }}</span>
           </center>
         </div>
       </n-gi>
@@ -69,11 +69,11 @@
 </template>
 
 <script setup lang="ts">
-import { Product } from '@/types/product';
+import { ProductListItem } from '@/types/product';
 import { NCard, NButton, NGi, NGrid } from 'naive-ui';
 
 defineProps<{
-  product: Product
+  product: ProductListItem
 }>();
 
 defineEmits(['click']);

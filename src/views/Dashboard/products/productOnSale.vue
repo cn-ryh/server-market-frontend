@@ -6,7 +6,7 @@
                 <n-h2 class="list-header">我的商品</n-h2>
                 <n-list hoverable clickable>
                     <n-list-item v-for="product in personalProducts" :key="product.id" @click="selectProduct(product)"
-                        :class="{ 'selected-item': selectedProduct?.id === product.id }">
+                        :class="{ 'selected-item': selectedProduct?.hostid === product.id }">
                         <n-thing :title="product.productname" content-style="margin-top: 10px;">
                             <template #description>
                                 <n-space vertical>
@@ -22,33 +22,23 @@
 
             <!-- 右侧商品详情和上架表单 -->
             <n-layout-content>
+                <div v-if="loading"> 加载中  </div>
+                <div v-else>
                 <div v-if="selectedProduct" class="detail-container">
                     <n-h2>商品详情</n-h2>
-                    <n-card>
-                        <n-grid :cols="2" :x-gap="24" :y-gap="24">
-                            <n-gi>
-                                <n-thing title="基本信息">
-                                    <template #description>
-                                        <n-space vertical>
-                                            <n-text>ID: {{ selectedProduct.id }}</n-text>
-                                            <n-text>名称: {{ selectedProduct.productname }}</n-text>
-                                        </n-space>
-                                    </template>
-                                </n-thing>
-                            </n-gi>
-                            <n-gi>
-                                <n-thing title="配置信息">
-                                    <template #description>
-                                        <n-space vertical>
-                                            <n-text>CPU: {{ selectedProduct.cpu }}</n-text>
-                                            <n-text>内存: {{ selectedProduct.memory }}</n-text>
-                                            <n-text>系统盘: {{ selectedProduct.system_disk_size }}</n-text>
-                                            <n-text>数据盘: {{ selectedProduct.data_disk_size }}G</n-text>
-                                        </n-space>
-                                    </template>
-                                </n-thing>
-                            </n-gi>
-                        </n-grid>
+                    <!-- 详细信息 -->
+                    <n-card title="详细信息">
+                        <n-descriptions label-placement="left" bordered size="small" :column="1">
+                            <n-descriptions-item v-for="(value, key) in selectedProduct.configRes"
+                                :label="mapper[key].name">
+                                <n-tag type="success" size="large">{{ value!.qty === 0 ? value!.spec : value?.qty
+                                }} {{ mapper[key].type }}</n-tag>
+                            </n-descriptions-item>
+
+                            <n-descriptions-item label="状态">
+                                <n-tag type="success" size="large">已激活</n-tag>
+                            </n-descriptions-item>
+                        </n-descriptions>
                     </n-card>
 
                     <n-divider />
@@ -77,6 +67,8 @@
                         </template>
                     </n-empty>
                 </div>
+                </div>
+
             </n-layout-content>
         </n-layout>
     </div>
@@ -95,8 +87,6 @@ import {
     NH2,
     NSpace,
     NCard,
-    NGrid,
-    NGi,
     NDivider,
     NForm,
     NFormItem,
@@ -109,9 +99,55 @@ import {
     useMessage
 } from 'naive-ui';
 import axios from 'axios';
-import { post } from '@/net/base';
+import { get, post } from '@/net/base';
 import { useRouter } from 'vue-router';
-
+import { ProductData } from '@/types/product';
+const mapper = {
+    'area': {
+        name: "区域",
+        type: ''
+    },
+    'cpu': {
+        name: "CPU",
+        type: '核'
+    },
+    'memory': {
+        name: "内存",
+        type: 'MB'
+    },
+    'systemDisk': {
+        name: "系统盘",
+        type: 'G'
+    },
+    'networkType': {
+        name: "网络类型",
+        type: ''
+    },
+    'ipNum': {
+        name: "IP数量",
+        type: '个'
+    },
+    'netNum': {
+        name: "NAT转发",
+        type: '个'
+    },
+    'siteNum': {
+        name: "共享建站",
+        type: '个'
+    },
+    'dataDisk': {
+        name: "数据盘",
+        type: 'G'
+    },
+    'uploadSpeed': {
+        name: "带宽",
+        type: 'Mbps'
+    },
+    'downloadSpeed': {
+        name: "流入带宽",
+        type: 'Mbps'
+    }
+}
 // 商品类型定义
 interface PersonalProduct {
     orderid: number;
@@ -186,12 +222,14 @@ interface ListingForm {
 
 // 响应式数据
 const personalProducts = ref<PersonalProduct[]>([]);
-const selectedProduct = ref<PersonalProduct | null>(null);
+const selectedProduct = ref<ProductData | null>(null);
 const listingForm = ref<ListingForm>({
     price: 0,
     description: ''
 });
+const loading = ref(false);
 const isListing = ref(false);
+
 const formRef = ref<FormInst | null>(null);
 const message = useMessage();
 // 表单验证规则
@@ -232,7 +270,11 @@ const fetchPersonalProducts = async () => {
 
 // 选择商品
 const selectProduct = async (product: PersonalProduct) => {
-    selectedProduct.value = product;
+    loading.value = true;
+    const productInfo = await get(`/product/${product.id}`);
+    loading.value = false;
+    selectedProduct.value = productInfo.data;
+    console.log(productInfo);
     // 重置表单
     listingForm.value = {
         price: 0,
@@ -257,14 +299,14 @@ const handleListProduct = async () => {
         await formRef.value?.validate();
         isListing.value = true;
         const res = await post(`/product/onsale`, {
-            id: selectedProduct.value.id,
+            id: selectedProduct.value.hostid,
             price: listingForm.value.price,
             description: listingForm.value.description
         });
         if (res.code === 0) {
             message.success('上架成功');
             setTimeout(() => {
-                router.push(`/product/${selectedProduct.value!.id}`);
+                router.push(`/product/${selectedProduct.value?.hostid}`);
             }, 2000);
         }
     } catch (errors) {
@@ -292,7 +334,6 @@ onMounted(() => {
 }
 
 .selected-item {
-    background-color: #f0f7ff;
     border-left: 3px solid #2080f0;
 }
 

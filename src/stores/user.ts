@@ -18,7 +18,11 @@ export const useUserStore = defineStore('user', {
       try {
         const [res, res2] = await Promise.all([axios.get(`/user_info`), get(`/user/info`)]);
         if (res.data.status !== 200) {
-          console.log(1);
+          localStorage.removeItem(`user`);
+          this.$state = {
+            id: 0,
+            username: ""
+          };
           this.$reset();
         }
         else {
@@ -26,13 +30,12 @@ export const useUserStore = defineStore('user', {
           for (let key of Object.keys(res.data.user)) {
             obj[key] = res.data.user[key];
           }
-          obj.balance = res2.balance;
+          obj.balance = res2.data.balance;
           this.$patch(obj);
-          console.log(`@` + this.$state);
-          console.log(`??` + this.username);
         }
       }
       catch (e) {
+        localStorage.removeItem(`user`);
         this.$state = {
           id: 0,
           username: ""
@@ -42,23 +45,6 @@ export const useUserStore = defineStore('user', {
     }
   },
   getters: {
-    // realname: (state) => {
-    //   return state.certifi;
-    // },
-    // username: (state) => {
-    //   console.log(`???@`);
-    //   console.log(state);
-    //   return state.username;
-    // },
-    // balance: (state) => {
-    //   return state.balance;
-    // },
-    // email: (state) => {
-    //   return state.email;
-    // },
-    // create_time: (state) => {
-    //   return state.create_time;
-    // }
   },
   persist: true, // 开启状态持久化（默认 localStorage）
 });

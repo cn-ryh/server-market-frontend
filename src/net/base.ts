@@ -17,7 +17,6 @@ const defaultError = (err: any) => {
     if (err.response.data.message === "Unauthorized") {
         return;
     }
-
     console.error(err);
     window.$message?.error(err.response.data.message || '请求失败');
     window.$loadingBar?.error();
@@ -35,6 +34,7 @@ function post(url: string, data: any, headers?: Record<string, string>) {
                 window.$loadingBar?.finish()
             } else {
                 defaultFailure(data.message);
+                reject(`${data.message}`);
                 window.$loadingBar?.error()
             }
         }).catch(err => { defaultError(err); reject(err); });
@@ -51,6 +51,7 @@ function get(url: string, params?: Record<string, number | string>, headers?: Re
                 resolve(data);
                 window.$loadingBar?.finish()
             } else {
+                reject(`${data.message}`);
                 defaultFailure(data.message);
                 window.$loadingBar?.error()
             }
@@ -60,7 +61,6 @@ function get(url: string, params?: Record<string, number | string>, headers?: Re
 }
 
 async function unauthorized() {
-    console.log(1);
     return (await axios.get(`/user_info`).then((res) => { return res.data.status !== 200; }));
 }
 

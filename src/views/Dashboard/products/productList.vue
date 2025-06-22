@@ -55,12 +55,12 @@ import {
 } from 'naive-ui';
 import { SearchOutline as SearchIcon } from '@vicons/ionicons5';
 import ProductCard from '@/components/productCard.vue';
-import { Product } from '@/types/product';
+import { ProductListItem } from '@/types/product';
 import { post } from '@/net/base';
 import { useRouter } from 'vue-router';
 const router = useRouter();
 // 数据状态
-const products = ref<Product[]>([]);
+const products = ref<ProductListItem[]>([]);
 const loading = ref(false);
 const noMoreData = ref(false);
 const pageSize = 20;
@@ -178,10 +178,8 @@ const handleScroll = () => {
 };
 
 // 产品点击事件
-const handleProductClick = (product: Product) => {
+const handleProductClick = (product: ProductListItem) => {
     router.push(`/product/${product.id}`);
-    // 这里可以添加导航到详情页的逻辑
-    console.log('Selected product:', product);
 };
 
 // 生命周期钩子

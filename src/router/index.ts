@@ -55,6 +55,32 @@ const router = createRouter({
           ]
         },
         {
+          path: `order`,
+          name: `order`,
+          children: [
+            {
+              path: 'list',
+              name: 'order-list',
+              component: () => import('../views/Dashboard/orders/orderList.vue'),
+              meta: {
+                title: '订单列表',
+              }
+            },
+            // {
+            //   path: 'detail/:id(\\d+)',
+            //   props: true,
+            //   name: 'order-detail',
+            //   component: () => import('../views/Dashboard/order/OrderDetail.vue'),
+            //   meta: {
+            //     title: '订单详情',
+            //   }
+            // }
+          ],
+          meta: {
+            requiresAuth: true,
+          }
+        },
+        {
           path: 'user/my-profile',
           name: 'profile',
           component: () => import('../views/Dashboard/Profile.vue'),
@@ -106,7 +132,7 @@ router.beforeEach(async (to, _from, next) => {
   // 需要登录的路由校验
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (await unauthorized()) {
-      window.location.href= '/login';
+      window.location.href = '/login';
     } else {
       next()
     }

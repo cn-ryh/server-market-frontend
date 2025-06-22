@@ -47,7 +47,6 @@ import { NTag, NSkeleton } from 'naive-ui'
 import { useUserStore } from '@/stores/user';
 const loading = ref(true);
 const userStore = useUserStore();
-console.log(userStore.username);
 const userInfo = ref({
   email: userStore.email,
   username: userStore.username,

@@ -17,6 +17,9 @@
             <h3 style="margin: 0px;">{{ forTime }}，{{ nickname }}</h3>
             <n-skeleton style="margin: 8px 0px 0px; width: 500px;" v-if="loading" />
           </div>
+          <div style="margin-left: 16px; text-align: left; margin-top: 5px;font-size: 1.5rem;color: red;">
+            余额 {{ balance }}
+          </div>
         </n-space>
       </n-card>
     </div>
@@ -58,10 +61,9 @@ import UserInfo from "@/components/UserInfo.vue"
 import { get } from '@/net/base'
 import { useUserStore } from '@/stores/user'
 const userStore = useUserStore();
-console.log(userStore.username);
 const notices = ref('');
-const nickname = userStore.username!;
-
+const nickname = ref(userStore.username!);
+const balance = ref(userStore.balance!);
 // 用户信息引用
 const userInfoRef = ref<{ userInfo: { isRealname: boolean; avatar: string; signRemainder: number; } } | null>(null)
 
@@ -107,7 +109,6 @@ const fetchNotice = async (): Promise<void> => {
 }
 const isRealname = ref(userStore.certifi?.status === 1);
 const goToRealname = () => { window.location.href = `/` }
-// 页面挂载后执行
 onMounted(() => {
   fetchNotice();
 
