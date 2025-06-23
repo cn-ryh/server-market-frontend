@@ -6,27 +6,26 @@ import {
 } from 'naive-ui'
 import { get } from '@/net/base'
 import { useUserStore } from '@/stores/user'
+import { rowDark } from 'naive-ui/es/legacy-grid/styles'
 
 const messager = useMessage()
 const userStore = useUserStore()
 
-// 订单类型定义
 interface Order {
-    id: number
-    productId: number
-    productName: string
-    price: number
-    createTime: string
-    status: 'completed' | 'pending' | 'canceled'
-    balanceAfter: number
-    counterparty: string
-    counterpartyId: number
+    id: number; // 订单 id
+    product_id: number; // 订单对应产品 id
+    buyer_id: number; // 购买者 id
+    seller_id: number; // 卖家 id
+    price: number; // 成交价格
+    status: 'pending' | 'completed' | 'cancelled'; // 状态
+    created_at: string,
+    updateTime: string,
 }
 
 // 响应式数据
 const activeTab = ref<'buyer' | 'seller'>('buyer')
-const buyerOrders = ref<Order[]>([])
-const sellerOrders = ref<Order[]>([])
+const buyerOrders = ref<Order[]>([]);
+const sellerOrders = ref<Order[]>([]);
 const loading = ref(false)
 const filterText = ref('')
 const buyerPagination = reactive({
@@ -49,8 +48,8 @@ async function fetchOrders() {
     try {
         loading.value = true
         const response = await get('/order/list')
-        buyerOrders.value = response.data.buyerOrders
-        sellerOrders.value = response.data.sellerOrders
+        buyerOrders.value = response.data.buyer_orders
+        sellerOrders.value = response.data.seller_orders
         buyerPagination.itemCount = buyerOrders.value.length
         sellerPagination.itemCount = sellerOrders.value.length
     } catch (error) {
@@ -69,42 +68,25 @@ const createColumns = (): DataTableColumns<Order> => [
         sorter: (a, b) => a.id - b.id
     },
     {
-        title: '商品名称',
-        key: 'productName',
-        render: (row) => (
-            <NButton
-                text
-                type="primary"
-                onClick={() => window.location.href = `/productdetail?id=${row.productId}`}
-            >
-                {row.productName}
-            </NButton>
-        ),
-        filter(value, row) {
-            return row.productName.includes(value as string)
-        }
+        title: '商品ID',
+        key: 'product_id'
     },
     {
         title: '价格',
         key: 'price',
-        render: (row) => `¥${row.price.toFixed(2)}`,
+        render: (row) => `¥${row.price}`,
         sorter: (a, b) => a.price - b.price
     },
     {
         title: '交易时间',
-        key: 'createTime',
-        sorter: (a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
-    },
-    {
-        title: '交易后余额',
-        key: 'balanceAfter',
-        render: (row) => `¥${row.balanceAfter.toFixed(2)}`,
-        sorter: (a, b) => a.balanceAfter - b.balanceAfter
+        key: 'created_at',
+        render: (row) => new Date(row.created_at).toLocaleString(),
+        sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     },
     {
         title: '交易对象',
-        key: 'counterparty',
-        render: (row) => `${row.counterparty} (ID:${row.counterpartyId})`
+        key: `user_id`,
+        render: (row) => `${(row.buyer_id === userStore.id) ? (row.seller_id) : (row.buyer_id)}`
     },
     {
         title: '状态',

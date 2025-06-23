@@ -9,9 +9,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppContent: typeof import('./src/components/AppContent.vue')['default']
+    BalanceCard: typeof import('./src/components/user/BalanceCard.vue')['default']
     HomeMenu: typeof import('./src/components/HomeMenu.vue')['default']
     LeftMenu: typeof import('./src/components/LeftMenu.vue')['default']
     NCard: typeof import('naive-ui')['NCard']
+    NDataTable: typeof import('naive-ui')['NDataTable']
     NDescriptions: typeof import('naive-ui')['NDescriptions']
     NDescriptionsItem: typeof import('naive-ui')['NDescriptionsItem']
     NFlex: typeof import('naive-ui')['NFlex']
@@ -31,14 +33,18 @@ declare module 'vue' {
     NSwitch: typeof import('naive-ui')['NSwitch']
     NTag: typeof import('naive-ui')['NTag']
     NText: typeof import('naive-ui')['NText']
+    NTextarea: typeof import('naive-ui')['NTextarea']
     NUpload: typeof import('naive-ui')['NUpload']
     NWaterfall: typeof import('naive-ui')['NWaterfall']
     ProductCard: typeof import('./src/components/productCard.vue')['default']
+    RechargeForm: typeof import('./src/components/user/rechargeForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Statistic: typeof import('./src/components/Statistic.vue')['default']
     TopMenu: typeof import('./src/components/TopMenu.vue')['default']
     Traffic: typeof import('./src/components/Traffic.vue')['default']
     UserInfo: typeof import('./src/components/UserInfo.vue')['default']
+    WithdarwHistory: typeof import('./src/components/user/withdarwHistory.vue')['default']
+    WithdrawForm: typeof import('./src/components/user/withdrawForm.vue')['default']
   }
 }

@@ -10,7 +10,8 @@ export const useUserStore = defineStore('user', {
     username: "",
     create_time: Date.now(),
     certifi: undefined,
-    balance: "0",
+    balance: "0.00",
+    freezeBalance: "0.00",
     email: ""
   }),
   actions: {
@@ -31,6 +32,7 @@ export const useUserStore = defineStore('user', {
             obj[key] = res.data.user[key];
           }
           obj.balance = res2.data.balance;
+          obj.freezeBalance = res2.data.freezeBalance;
           this.$patch(obj);
         }
       }

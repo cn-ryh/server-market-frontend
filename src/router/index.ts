@@ -81,12 +81,22 @@ const router = createRouter({
           }
         },
         {
-          path: 'user/my-profile',
-          name: 'profile',
-          component: () => import('../views/Dashboard/Profile.vue'),
+          path: 'user',
+          name: 'user',
           meta: {
             title: '用户中心',
-          }
+            requiresAuth: true
+          },
+          children: [
+            {
+              path: `balance`,
+              name: 'user-balance',
+              component: () => import('../views/Dashboard/user/userBalance.vue'),
+              meta: {
+                title: '我的余额',
+              }
+            }
+          ]
         },
         {
           path: 'admin',
